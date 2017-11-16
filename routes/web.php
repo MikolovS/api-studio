@@ -1,5 +1,5 @@
 <?php
 
 Route::get('/', function (){
-    return '';
+    return '<H1>WEB ROUTS<H1>';
 });
