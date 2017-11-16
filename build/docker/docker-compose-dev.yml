@@ -1,0 +1,80 @@
+version: '2'
+services:
+
+
+### Applications Code Container #############################
+    app:
+      build:
+        context: ./
+        dockerfile: app.dockerfile
+      working_dir: /var/www/
+      volumes:
+        - ${PROJECT_DIR}:/var/www/
+      environment:
+        - DB_PORT=5432
+        - DB_HOST=database
+      networks:
+        - backend
+
+### NGINX Server Container ##################################
+
+    web.spy:
+      build:
+        context: ./
+        dockerfile: web.dockerfile
+      volumes_from:
+        - app
+      ports:
+        - 8400:80
+      networks:
+        - frontend
+        - backend
+### Postgres Container #########################################
+
+    database:
+      restart: always
+      image: postgres:9.6
+      volumes:
+        - /var/lib/postgresql:/var/lib/postgresql
+        - /var/log/postgresql:/var/log/postgresql
+      networks:
+        - backend
+      ports:
+        - 54321:5432
+      environment:
+        - POSTGRES_DB=spyDB
+        - POSTGRES_USER=spyUser
+        - POSTGRES_PASSWORD=iJJ3iHxlo9FhIUZu
+### Adminer Container ####################################
+
+    spy.adminer:
+      image: adminer
+      networks:
+        - backend
+      environment:
+        - DB_HOST=database
+        - DB_NAME=spyDB
+      ports:
+        - 9999:8080
+### pgADmin ###############################################
+
+    pgadmin:
+      links:
+        - database:postgres
+      image: fenglc/pgadmin4
+      volumes:
+        - /data/pgadmin:/root/.pgadmin
+      ports:
+        - "5050:5050"
+      networks:
+        - backend
+
+
+networks:
+  frontend:
+    driver: "bridge"
+  backend:
+    driver: "bridge"
+
+# volumes:
+#   dbdata:
