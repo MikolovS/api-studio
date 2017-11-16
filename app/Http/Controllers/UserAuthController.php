@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AuthRequest;
+use App\Models\Permission;
+use App\Models\Role;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -65,4 +67,39 @@ class UserAuthController extends Controller
         $user = JWTAuth::toUser();
         return response()->json($user);
     }
+
+	public function createRole(Request $request){
+		$role = new Role();
+		$role->name = $request->input('name');
+		$role->save();
+
+		return response()->json("created");
+	}
+
+	public function createPermission(Request $request){
+		$viewUsers = new Permission();
+		$viewUsers->name = $request->input('name');
+		$viewUsers->save();
+
+		return response()->json("created");
+
+	}
+
+	public function assignRole(Request $request){
+		$user = User::where('email', '=', $request->input('email'))->first();
+
+		$role = Role::where('name', '=', $request->input('role'))->first();
+		//$user->attachRole($request->input('role'));
+		$user->roles()->attach($role->id);
+
+		return response()->json("created");
+	}
+
+	public function attachPermission(Request $request){
+		$role = Role::where('name', '=', $request->input('role'))->first();
+		$permission = Permission::where('name', '=', $request->input('name'))->first();
+		$role->attachPermission($permission);
+
+		return response()->json("created");
+	}
 }

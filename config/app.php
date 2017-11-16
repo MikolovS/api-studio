@@ -169,6 +169,8 @@ return [
          * Package Service Providers...
          */
 	    Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
+	    Zizaco\Entrust\EntrustServiceProvider::class,
+
         /*
          * Application Service Providers...
          */
@@ -229,7 +231,8 @@ return [
         'FCM'      => LaravelFCM\Facades\FCM::class,
         'FCMGroup' => LaravelFCM\Facades\FCMGroup::class,
         'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
-        'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class
+        'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
+	    'Entrust'   => Zizaco\Entrust\EntrustFacade::class,
     ],
 
 ];
