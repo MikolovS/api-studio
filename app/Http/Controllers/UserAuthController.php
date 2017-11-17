@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AuthRequest;
-use App\Models\Permission;
-use App\Models\Role;
+use App\Permission;
+use App\Role;
 use App\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -61,11 +59,38 @@ class UserAuthController extends Controller
      * @param  Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getUser(Request $request)
+//    public function getUser(Request $request)
+    public function getUser()
     {
-        JWTAuth::setToken($request->input('token'));
-        $user = JWTAuth::toUser();
-        return response()->json($user);
+//        JWTAuth::setToken($request->input('token'));
+//        $user = JWTAuth::toUser();
+//        return response()->json($user);
+	    try {
+
+		    if (! $user = JWTAuth::parseToken()->authenticate()) {
+			    return response()->json(['user_not_found'], 404);
+		    }
+
+	    } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+
+		    return response()->json(['token_expired'], $e->getStatusCode());
+
+	    } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+
+		    return response()->json(['token_invalid'], $e->getStatusCode());
+
+	    } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+
+		    return response()->json(['token_absent'], $e->getStatusCode());
+
+	    }
+
+	    $roles = $user->role();
+	    $user->role = $roles->pluck('id');
+	    $user->roleName = $roles->pluck('name');
+
+	    // the token is valid and we have found the user via the sub claim
+	    return response()->json(compact('user'));
     }
 
 	public function createRole(Request $request){
@@ -86,7 +111,7 @@ class UserAuthController extends Controller
 	}
 
 	public function assignRole(Request $request){
-		$user = User::where('email', '=', $request->input('email'))->first();
+		$user = User::where('name', '=', $request->input('name'))->first();
 
 		$role = Role::where('name', '=', $request->input('role'))->first();
 		//$user->attachRole($request->input('role'));
