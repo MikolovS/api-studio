@@ -1,28 +1,46 @@
 #!/bin/bash
 
+. $(dirname "$0")/help.sh
 
-SCRIPT_PATH="`dirname \"$0\"`"              # relative
-SCRIPT_PATH="`( cd \"$SCRIPT_PATH\" && pwd )`"  # absolutized and normalized
 
-if [ -z "$SCRIPT_PATH" ] ; then
-  # error; for some reason, the path is not accessible
-  # to the script (e.g. permissions re-evaled after suid)
-  exit 1  # fail
+path=$(current_path)
+project_dir="$path/../"
+
+if [ -f "$project_dir/../.env" ] ;
+	then
+		rm "$project_dir/../.env"
 fi
 
-printf "PROJECT_DIR=$SCRIPT_PATH/.." > "$SCRIPT_PATH/docker/.env"
 
-if [ -f "$SCRIPT_PATH/.env" ]; then # если есть уже .env файл
-        rm "$SCRIPT_PATH/.env"  # удаляем его
-    fi
+if $ENV_DEV; then
+    cp "$path/.dev.env" "$project_dir/.env"
 
-cp "$SCRIPT_PATH/docker/dev.env" "$SCRIPT_PATH/../.env"
+    printf "PROJECT_DIR=$project_dir" > "$path/dev/.env"
 
-cd "$SCRIPT_PATH/docker" && \
-	docker-compose build
+    cd "$path/dev" && docker-compose -p puzzland_dev build
 
+    docker run --rm --interactive --tty \
+        --volume "$project_dir":/app \
+        --volume ~/.ssh/:/root/.ssh \
+        composer install
 
-docker run --rm --interactive --tty \
-    --volume "$SCRIPT_PATH/..":/var/www/ \
-    -w /var/www/ \
-    composer install
+elif $ENV_TEST; then
+    cp "$path/.tests.env" "$project_dir/.env"
+
+    printf "PROJECT_DIR=$project_dir" > "$path/tests/.env"
+
+    cd "$path/tests" && docker-compose -p puzzland_tests build
+
+else
+    cp "$path/.prod.env" "$project_dir/.env"
+
+    printf "PROJECT_DIR=$project_dir" > "$path/prod/.env"
+
+    cd "$path/prod" && docker-compose -p puzzland build
+
+    docker run --rm --interactive --tty \
+        --volume "$project_dir":/app \
+        --volume ~/.ssh/:/root/.ssh \
+        composer install
+fi
+

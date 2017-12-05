@@ -1,0 +1,71 @@
+version: '2'
+services:
+
+  # application (code)
+  app:
+    build:
+      context: ./
+      dockerfile: app.dockerfile
+    working_dir: /app
+    volumes:
+      - ${PROJECT_DIR}:/app
+    networks:
+      - puzzland
+    environment:
+      - DB_PORT=5432
+      - DB_HOST=database
+
+
+  cron:
+    build:
+      context: ./
+      dockerfile: cron.dockerfile
+    networks:
+      - puzzland
+
+
+  # http server
+  web:
+    build:
+      context: ./
+      dockerfile: web.dockerfile
+    working_dir: /app
+    networks:
+      - puzzland
+    volumes_from:
+      - app
+    ports:
+      - 888:80
+
+  # database
+  database:
+    image: postgres:9.6
+    networks:
+      - puzzland
+    environment:
+      - POSTGRES_DB=puzzland
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 54321:5432
+
+  # adminer
+  adminer:
+    image: adminer
+    networks:
+      - puzzland
+    ports:
+      - 9999:8080
+
+  portainer:
+    image: portainer/portainer
+    networks:
+      - puzzland
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 800:9000
+
+networks:
+  puzzland:
+    driver: "bridge"

@@ -1,3 +1,0 @@
-
-
-0 1 * * * curl http://web.spy/update-user-process?key=fgjegrfiugsddkfjhsd >> /var/log/cron.log 2>&1

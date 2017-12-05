@@ -5,11 +5,9 @@ RUN apt-get update && apt-get install -y \
         && apt-get install -y libpq-dev \
         && docker-php-ext-install -j$(nproc) mcrypt
 
-RUN docker-php-ext-install mbstring
-RUN docker-php-ext-install exif
-RUN docker-php-ext-install opcache
+RUN docker-php-ext-install mbstring exif opcache
 
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pgsql pdo_pgsql
 
-COPY php.ini    /usr/local/etc/php/
+COPY php/php.ini    /usr/local/etc/php/
